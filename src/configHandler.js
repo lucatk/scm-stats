@@ -1,9 +1,20 @@
 const fs = require('fs');
 
 const { getProjectRoot } = require('./utils');
+const path = `${getProjectRoot()}/.scm-stats/config.json`;
+
+fs.exists(path, (exists) => {
+  if (!exists) {
+    fs.writeFile(path, JSON.stringify({
+      publicUrl: 'http://localhost:3000'
+    }, null, 2), (err) => {
+      if (err) console.log(err);
+    });
+  }
+});
 
 module.exports = {
-  getPath: () => `${getProjectRoot()}/.scm-stats/config.json`,
+  getPath: () => path,
   getConfig: () => require(module.exports.getPath()),
   updateService: async (serviceName, updatedService) => {
     const config = module.exports.getConfig();
@@ -11,7 +22,7 @@ module.exports = {
     try {
       const result = await module.exports.saveConfig(config);
       return result;
-    } catch(error) {
+    } catch (error) {
       throw error;
     }
   },

@@ -1,9 +1,18 @@
 const fs = require('fs');
 
 const { getProjectRoot } = require('./utils');
+const path = `${getProjectRoot()}/.scm-stats/cache.json`;
+
+fs.exists(path, (exists) => {
+  if (!exists) {
+    fs.writeFile(path, JSON.stringify({}, null, 2), (err) => {
+      if (err) console.log(err);
+    });
+  }
+});
 
 module.exports = {
-  getPath: () => `${getProjectRoot()}/.scm-stats/cache.json`,
+  getPath: () => path,
   getCache: () => require(module.exports.getPath()),
   getStat: (stat) => module.exports.getCache()[stat],
   updateStat: async (stat, updatedStat) => {

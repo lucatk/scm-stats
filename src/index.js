@@ -1,3 +1,7 @@
+// ensure required files exist
+require('./configHandler');
+require('./cacheHandler');
+
 module.exports = (req, res, next) => {
   const { url } = req;
   let match = url.match(/^\/([-\w;:@+$\|\_.!~*\|'()\[\]%#,☺]+)(?:\/([^?]*))?.*$/);
