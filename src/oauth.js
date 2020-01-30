@@ -1,17 +1,18 @@
 const fetch = require('isomorphic-unfetch');
 
 const { updateService } = require('./configHandler');
-const { generateRandomToken, makePublicUrl } = require('./utils');
+const { generateRandomToken, encodeBase64, makePublicUrl } = require('./utils');
 
 module.exports = {
   setupService: (service, config, vars) => async ({ code, state }) => {
+    const redirectUri = makePublicUrl(`/setup?service=${service}`);
     if (code) {
       if (!state || !config.random_state || config.random_state !== state) {
         throw new Error('Invalid state token.');
       }
       
       try {
-        const result = await module.exports.getAccessToken(vars, config.client_id, config.client_secret, code, state);
+        const result = await module.exports.getAccessToken(vars, config.client_id, config.client_secret, code, state, redirectUri);
         if (result) {
           const data = {
             token: result
@@ -23,7 +24,7 @@ module.exports = {
         throw error;
       }
       throw new Error(result);
-    } else if (config.client_id && config.client_secret) {
+    } else if (config && config.client_id && config.client_secret) {
       const state = await generateRandomToken();
       try {
         await updateService(service, {
@@ -34,19 +35,23 @@ module.exports = {
         throw error;
       }
       return {
-        url: `${vars.authorizationUrl}?client_id=${config.client_id}&redirect_uri=${makePublicUrl(`/setup?service=${service}`)}&scope=${vars.scope}&state=${state}&response_type=code`
+        url: `${vars.authorizationUrl}?client_id=${config.client_id}&redirect_uri=${redirectUri}&scope=${vars.scope}&state=${state}&response_type=code`
       };
     } else {
       throw new Error('Service config not found.');
     }
   },
-  getAccessToken: async (vars, clientId, clientSecret, code, state) => {
+  getAccessToken: async (vars, clientId, clientSecret, code, state, redirectUri) => {
     const res = await fetch(
-      `${vars.accessTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&state=${state}&grant_type=authorization_code`,
+      vars.accessTokenUrl,
       {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${encodeBase64(`${clientId}:${clientSecret}`)}`
+        },
+        body: `code=${code}&state=${state}&scope=${vars.scope}&redirect_uri=${redirectUri}&grant_type=authorization_code`
       }
     );
     if (res.status === 200) {
@@ -56,6 +61,7 @@ module.exports = {
       }
       throw new Error(json.error_description);
     } else {
+      console.log(res);
       throw new Error(res.statusText);
     }
   }
