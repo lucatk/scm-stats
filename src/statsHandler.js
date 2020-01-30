@@ -3,7 +3,22 @@ const config = require('./configHandler').getConfig();
 const { getStat, updateStat } = require('./cacheHandler');
 
 module.exports = {
-  getLatestCommit: async (service, user) => {
+  getLatestCommit: async (user) => {
+    const { services } = config;
+    if (!services) return null;
+    const latestCommits = await Promise.all(
+      Object.keys(services)
+        .filter((service) => services[service] && services[service].token)
+        .map((service) => module.exports.getLatestCommitFromService(service, user))
+    );
+    return latestCommits.reduce((latest, commit) => {
+      if (commit && (!latest || latest.date < commit.date)) {
+        return commit;
+      }
+      return latest;
+    }, null);
+  },
+  getLatestCommitFromService: async (service, user) => {
     const cached = getStat('latestCommit', service);
     if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
       return cached.data;
@@ -14,6 +29,7 @@ module.exports = {
     }
 
     const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
+    console.log(new Date().getTime(), 'received', service);
     if (candidate) {
       await updateStat('latestCommit', service, {
         timestamp: new Date().getTime(),
@@ -47,7 +63,15 @@ module.exports = {
         if (repoData.length === 0) return null;
 
         const commit = await module.exports.github.findLatestCommitInRepoList(repoData, user, token);
-        if (commit) return commit;
+        if (commit) {
+          return {
+            date: commit.commit.author.date,
+            privateRepo: commit.privateRepo,
+            repository: commit.repo,
+            message: commit.commit.message,
+            url: commit.html_url
+          };
+        }
       }
     },
     findLatestCommitInRepoList: async (repoData, user, token) => {
@@ -88,6 +112,56 @@ module.exports = {
         }
       }
       return null;
+    }
+  },
+  gitlab: {
+    findLatestCommit: async (user, token) => {
+      const eventRes = await fetch(
+        `https://gitlab.com/api/v4/users/${user}/events?action=pushed`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      const json = await eventRes.json();
+      if (!json || json.error || json.length === 0) return null;
+      const target = json[0];
+      if (!target) return null;
+      const pushData = target.push_data;
+      if (!pushData) return null;
+
+      const projectId = target.project_id;
+      const commitSha = pushData.commit_to;
+
+      const [projectRes, commitRes] = await Promise.all([
+        fetch(
+          `https://gitlab.com/api/v4/projects/${projectId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        ),
+        fetch(
+          `https://gitlab.com/api/v4/projects/${projectId}/repository/commits/${commitSha}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        )
+      ]);
+      const projectData = await projectRes.json();
+      if (!projectData || projectData.error || projectData.message) return null;
+      const commitData = await commitRes.json();
+      if (!commitData || commitData.error) return null;
+
+      return {
+        date: commitData.committed_date,
+        privateRepo: projectData.visibility === 'private',
+        repository: projectData.name,
+        message: commitData.message,
+        url: `${projectData.web_url}/commit/${commitSha}`
+      };
     }
   }
 };

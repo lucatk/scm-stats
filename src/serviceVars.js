@@ -8,6 +8,6 @@ module.exports = {
   gitlab: {
     authorizationUrl: 'https://gitlab.com/oauth/authorize',
     accessTokenUrl: 'https://gitlab.com/oauth/token',
-    scope: 'read_repository'
+    scope: 'read_user%20read_repository%20api'
   }
 }
