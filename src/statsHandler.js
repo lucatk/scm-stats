@@ -1,14 +1,29 @@
-const vars = require('./serviceVars');
+const serviceVars = require('./serviceVars');
 const config = require('./configHandler').getConfig();
+const { getStat, updateStat } = require('./cacheHandler');
 
 module.exports = {
   getLatestCommit: async (service, user) => {
+    const cached = getStat('latestCommit');
+    if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
+      return cached.data;
+    }
     const serviceConfig = config.services[service];
-    return module.exports[service].findLatestCommit(user, serviceConfig.token);
+    if (!serviceConfig || !serviceConfig.token) {
+      return null;
+    }
+
+    const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
+    if (candidate) {
+      await updateStat('latestCommit', {
+        timestamp: new Date().getTime(),
+        data: candidate
+      });
+    }
+    return candidate;
   },
   github: {
     findLatestCommit: async (user, token) => {
-      const vars = vars.github;
       let count = 1;
       let loaded = 0;
       let page = 0;

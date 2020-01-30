@@ -3,8 +3,8 @@ const fs = require('fs');
 const { getProjectRoot } = require('./utils');
 
 module.exports = {
-  getConfigPath: () => `${getProjectRoot()}/.scm-stats/config.json`,
-  getConfig: () => require(module.exports.getConfigPath()),
+  getPath: () => `${getProjectRoot()}/.scm-stats/config.json`,
+  getConfig: () => require(module.exports.getPath()),
   updateService: async (serviceName, updatedService) => {
     const config = module.exports.getConfig();
     config.services[serviceName] = updatedService;
@@ -17,7 +17,7 @@ module.exports = {
   },
   saveConfig: async (config) => {
     return new Promise((resolve, reject) => {
-      fs.writeFile(module.exports.getConfigPath(), JSON.stringify(config, null, 2), (err) => {
+      fs.writeFile(module.exports.getPath(), JSON.stringify(config, null, 2), (err) => {
         if (err) return reject(err);
         return resolve();
       });

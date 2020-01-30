@@ -1,4 +1,3 @@
-const config = require('../configHandler').getConfig();
 const { getLatestCommit } = require('../statsHandler');
 const { makeResponse } = require('../utils');
 
