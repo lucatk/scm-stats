@@ -1,0 +1,8 @@
+{
+  "name": "scm-stats",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "dependencies": {
+    "isomorphic-unfetch": "^3.0.0"
+  }
+}
