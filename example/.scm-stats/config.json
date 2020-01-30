@@ -1,0 +1,9 @@
+{
+  "publicUrl": "http://localhost:8080",
+  "services": {
+    "github": {
+      "client_id": "YOUR_ID",
+      "client_secret": "YOUR_SECRET"
+    }
+  }
+}
