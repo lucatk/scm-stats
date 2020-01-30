@@ -14,14 +14,15 @@ fs.exists(path, (exists) => {
 module.exports = {
   getPath: () => path,
   getCache: () => require(module.exports.getPath()),
-  getStat: (stat) => module.exports.getCache()[stat],
-  updateStat: async (stat, updatedStat) => {
+  getStat: (stat, service) => (module.exports.getCache()[stat] || {})[service],
+  updateStat: async (stat, service, updatedStat) => {
     const cache = module.exports.getCache();
-    cache[stat] = updatedStat;
+    if (!cache[stat]) cache[stat] = {};
+    cache[stat][service] = updatedStat;
     try {
       const result = await module.exports.saveCache(cache);
       return result;
-    } catch(error) {
+    } catch (error) {
       throw error;
     }
   },

@@ -4,7 +4,7 @@ const { getStat, updateStat } = require('./cacheHandler');
 
 module.exports = {
   getLatestCommit: async (service, user) => {
-    const cached = getStat('latestCommit');
+    const cached = getStat('latestCommit', service);
     if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
       return cached.data;
     }
@@ -15,7 +15,7 @@ module.exports = {
 
     const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
     if (candidate) {
-      await updateStat('latestCommit', {
+      await updateStat('latestCommit', service, {
         timestamp: new Date().getTime(),
         data: candidate
       });
