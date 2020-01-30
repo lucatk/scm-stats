@@ -5,6 +5,9 @@ const path = `${getProjectRoot()}/.scm-stats/cache.json`;
 
 fs.exists(path, (exists) => {
   if (!exists) {
+    fs.mkdir(path.substring(0, path.lastIndexOf('/')), { recursive: true }, (err) => {
+      if (err) throw err;
+    });
     fs.writeFile(path, JSON.stringify({}, null, 2), (err) => {
       if (err) console.log(err);
     });

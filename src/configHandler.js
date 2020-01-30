@@ -5,6 +5,9 @@ const path = `${getProjectRoot()}/.scm-stats/config.json`;
 
 fs.exists(path, (exists) => {
   if (!exists) {
+    fs.mkdir(path.substring(0, path.lastIndexOf('/')), { recursive: true }, (err) => {
+      if (err) throw err;
+    });
     fs.writeFile(path, JSON.stringify({
       publicUrl: 'http://localhost:3000'
     }, null, 2), (err) => {
