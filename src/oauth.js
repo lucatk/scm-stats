@@ -36,6 +36,8 @@ module.exports = {
       return {
         url: `${vars.authorizationUrl}?client_id=${config.client_id}&redirect_uri=${makePublicUrl(`/setup?service=${service}`)}&scope=${vars.scope}&state=${state}&response_type=code`
       };
+    } else {
+      throw new Error('Service config not found.');
     }
   },
   getAccessToken: async (vars, clientId, clientSecret, code, state) => {
