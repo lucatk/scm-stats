@@ -18,7 +18,7 @@ module.exports = async (match, req, res) => {
   } catch (error) {
     return res.status(500).json(
       makeResponse({
-        error: error
+        error: error.message
       })
     );
   }
