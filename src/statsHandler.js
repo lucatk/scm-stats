@@ -23,7 +23,7 @@ module.exports = {
     }, null);
   },
   getLatestCommitFromService: async (service, user) => {
-    const cached = await getStat('latestCommit', service);
+    const cached = await getStat('latestCommit', [service, user]);
     if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
       return cached.data;
     }
@@ -34,7 +34,7 @@ module.exports = {
 
     const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
     if (candidate) {
-      await updateStat('latestCommit', service, {
+      await updateStat('latestCommit', [service, user], {
         timestamp: new Date().getTime(),
         data: {
           ...candidate,

@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const { getProjectRoot } = require('./utils');
+const { getProjectRoot, traverseObject, modifyTraversedObject } = require('./utils');
 const path = `${getProjectRoot()}/.scm-stats/cache.json`;
 
 fs.exists(path, (exists) => {
@@ -24,11 +24,10 @@ module.exports = {
       });
     });
   },
-  getStat: async (stat, service) => ((await module.exports.getCache())[stat] || {})[service],
-  updateStat: async (stat, service, updatedStat) => {
-    const cache = await module.exports.getCache();
-    if (!cache[stat]) cache[stat] = {};
-    cache[stat][service] = updatedStat;
+  getStat: async (stat, path) => traverseObject(await module.exports.getCache()[stat], path),
+  updateStat: async (stat, path, updatedStat) => {
+    const cache = await module.exports.getCache() || {};
+    cache[stat] = modifyTraversedObject(cache[stat], path, updatedStat);
     try {
       const result = await module.exports.saveCache(cache);
       return result;
