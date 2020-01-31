@@ -16,10 +16,17 @@ fs.exists(path, (exists) => {
 
 module.exports = {
   getPath: () => path,
-  getCache: () => require(module.exports.getPath()),
-  getStat: (stat, service) => (module.exports.getCache()[stat] || {})[service],
+  getCache: async () => {
+    return new Promise((resolve, reject) => {
+      fs.readFile(module.exports.getPath(), (err, data) => {
+        if (err) return reject(err);
+        return resolve(JSON.parse(data));
+      });
+    });
+  },
+  getStat: async (stat, service) => ((await module.exports.getCache())[stat] || {})[service],
   updateStat: async (stat, service, updatedStat) => {
-    const cache = module.exports.getCache();
+    const cache = await module.exports.getCache();
     if (!cache[stat]) cache[stat] = {};
     cache[stat][service] = updatedStat;
     try {

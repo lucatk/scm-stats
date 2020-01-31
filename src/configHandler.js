@@ -18,9 +18,16 @@ fs.exists(path, (exists) => {
 
 module.exports = {
   getPath: () => path,
-  getConfig: () => require(module.exports.getPath()),
+  getConfig: async () => {
+    return new Promise((resolve, reject) => {
+      fs.readFile(module.exports.getPath(), (err, data) => {
+        if (err) return reject(err);
+        return resolve(JSON.parse(data));
+      });
+    });
+  },
   updateService: async (serviceName, updatedService) => {
-    const config = module.exports.getConfig();
+    const config = await module.exports.getConfig();
     config.services[serviceName] = updatedService;
     try {
       const result = await module.exports.saveConfig(config);

@@ -1,11 +1,11 @@
 const fetch = require('isomorphic-unfetch');
 
 const { updateService } = require('./configHandler');
-const { generateRandomToken, encodeBase64, makePublicUrl } = require('./utils');
+const { generateRandomToken, encodeBase64 } = require('./utils');
 
 module.exports = {
-  setupService: (service, config, vars) => async ({ code, state }) => {
-    const redirectUri = makePublicUrl(`/setup?service=${service}`);
+  setupService: (service, config, vars, publicUrl) => async ({ code, state }) => {
+    const redirectUri = `${publicUrl}/setup?service=${service}`;
     if (code) {
       if (!state || !config.random_state || config.random_state !== state) {
         throw new Error('Invalid state token.');
@@ -61,7 +61,6 @@ module.exports = {
       }
       throw new Error(json.error_description);
     } else {
-      console.log(res);
       throw new Error(res.statusText);
     }
   }

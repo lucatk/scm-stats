@@ -1,6 +1,10 @@
 const serviceVars = require('./serviceVars');
-const config = require('./configHandler').getConfig();
 const { getStat, updateStat } = require('./cacheHandler');
+
+let config = {};
+require('./configHandler').getConfig().then(cfg => {
+  config = cfg;
+});
 
 module.exports = {
   getLatestCommit: async (user) => {
@@ -19,7 +23,7 @@ module.exports = {
     }, null);
   },
   getLatestCommitFromService: async (service, user) => {
-    const cached = getStat('latestCommit', service);
+    const cached = await getStat('latestCommit', service);
     if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
       return cached.data;
     }
@@ -29,11 +33,13 @@ module.exports = {
     }
 
     const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
-    console.log(new Date().getTime(), 'received', service);
     if (candidate) {
       await updateStat('latestCommit', service, {
         timestamp: new Date().getTime(),
-        data: candidate
+        data: {
+          ...candidate,
+          source: service
+        }
       });
     }
     return candidate;
