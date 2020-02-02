@@ -1,6 +1,6 @@
 # scm-stats
 
-dcm-stats is a simple Express middleware for pulling quick stats from Source Code Management services such as GitHub or GitLab.
+scm-stats is a simple Express middleware for pulling quick stats from Source Code Management services such as GitHub or GitLab.
 
 ## Installation
 
