@@ -6,7 +6,7 @@ module.exports = async (match, req, res) => {
   if (!service) {
     return res.status(400).end();
   }
-  const setup = setupHandler[service]();
+  const setup = await setupHandler[service]();
   if (!setup) {
     return res.status(400).end();
   }

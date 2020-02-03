@@ -4,10 +4,9 @@ const { updateService } = require('./configHandler');
 const { generateRandomToken, encodeBase64 } = require('./utils');
 
 module.exports = {
-  setupService: (service, serviceConfigLoader, vars, publicUrl) => async ({ code, state }) => {
+  setupService: (service, config, vars, publicUrl) => async ({ code, state }) => {
     const redirectUri = `${publicUrl}/setup?service=${service}`;
     if (code) {
-      const config = await serviceConfigLoader();
       if (!state || !config.random_state || config.random_state !== state) {
         throw new Error('Invalid state token.');
       }
