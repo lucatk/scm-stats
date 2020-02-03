@@ -8,7 +8,9 @@ const { retrievePathFromUrl } = require('./utils');
 let config;
 
 module.exports = async (req, res, next) => {
+  // ensure config only loaded once
   if (!config) config = await configHandler.getConfig();
+
   let { url } = req;
   const rootUrl = retrievePathFromUrl(config.publicUrl);
   if (rootUrl !== '/' && url.startsWith(rootUrl)) url = url.replace(rootUrl, '');

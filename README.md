@@ -17,7 +17,7 @@ yarn add scm-stats
 // import the scm-stats module using require
 const scmStats = require('scm-stats');
 // or using ES6+ syntax:
-import scmStats from 'scm-stats;
+import scmStats from 'scm-stats';
 
 // add to Express as middleware
 app.use('/', scmStats);

@@ -1,14 +1,11 @@
 const serviceVars = require('./serviceVars');
-const { getStat, updateStat } = require('./cacheHandler');
 
-let config = {};
-require('./configHandler').getConfig().then(cfg => {
-  config = cfg;
-});
+const { getStat, updateStat } = require('./cacheHandler');
+const { getConfig } = require('./configHandler');
 
 module.exports = {
   getLatestCommit: async (user) => {
-    const { services } = config;
+    const { services } = await getConfig();
     if (!services) return null;
     const latestCommits = await Promise.all(
       Object.keys(services)
@@ -23,11 +20,12 @@ module.exports = {
     }, null);
   },
   getLatestCommitFromService: async (service, user) => {
+    const { services } = await getConfig();
     const cached = await getStat('latestCommit', [service, user]);
     if (cached && cached.data && (cached.timestamp + 1200000) > new Date().getTime()) {
       return cached.data;
     }
-    const serviceConfig = config.services[service];
+    const serviceConfig = services[service];
     if (!serviceConfig || !serviceConfig.token) {
       return null;
     }

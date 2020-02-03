@@ -1,13 +1,15 @@
 const oauth = require('./oauth');
 
 const vars = require('./serviceVars');
+const { getConfig } = require('./configHandler');
 
-let config = {};
-require('./configHandler').getConfig().then(cfg => {
-  config = cfg;
-});
+const getServiceConfig = async (service) => {
+  const config = await getConfig();
+  return ((config || {}).services || {})[service];
+}
 
+const getOauthSetup = (service) => oauth.setupService(service, () => getServiceConfig(service), vars[service], config.publicUrl);
 module.exports = {
-  github: () => oauth.setupService('github', (config.services || {}).github, vars.github, config.publicUrl),
-  gitlab: () => oauth.setupService('gitlab', (config.services || {}).gitlab, vars.gitlab, config.publicUrl)
+  github: () => getOauthSetup('github'),
+  gitlab: () => getOauthSetup('gitlab')
 };
