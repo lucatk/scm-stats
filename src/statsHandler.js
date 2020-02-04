@@ -32,12 +32,10 @@ module.exports = {
 
     const candidate = await module.exports[service].findLatestCommit(user, serviceConfig.token);
     if (candidate) {
+      candidate.source = service;
       await updateStat('latestCommit', [service, user], {
         timestamp: new Date().getTime(),
-        data: {
-          ...candidate,
-          source: service
-        }
+        data: candidate
       });
     }
     return candidate;
